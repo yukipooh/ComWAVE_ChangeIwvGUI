@@ -1,0 +1,2 @@
+# ComWAVE_ChangeIwvGUI
+ComWAVEにおいて、探触子ごとに設定された波形ファイルを視覚的に簡単に設定するためのGUIアプリ
