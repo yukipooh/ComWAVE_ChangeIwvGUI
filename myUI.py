@@ -7,7 +7,6 @@ import tkinter as tk
 import numpy as np
 import os
 
-
 class MyApp(tk.Frame):
     #コンストラクタ
     def __init__(self, master=None):
@@ -94,8 +93,8 @@ class MyApp(tk.Frame):
 
     #指定された探触子の波形ファイルを指定されたものに変更する。elementIndexesには変更したい探触子番号が入ったリストを渡す。
     def ChangeElementIWV(self, elementIndexes, iwvName):
-        print(iwvName)
-        print(elementIndexes)
+        # print(iwvName)
+        # print(elementIndexes)
         writeLines = []
         # with open(self.selectedCotFilePath, encoding="utf-8") as loadedFile, open(self.selectedCotFilePath, "w") as writer:
         with open(self.selectedCotFilePath, encoding="utf-8") as loadedFile:
@@ -109,10 +108,10 @@ class MyApp(tk.Frame):
                 line = loadedFile.readline()
                 if ((i + 1) in elementIndexes) == True:
                     parameters = line[:-1].split(",")
-                    print(line)
-                    print(parameters[5])
+                    # print(line)
+                    # print(parameters[5])
                     line = line.replace(parameters[5], iwvName)
-                    print(line)
+                    # print(line)
                 # writer.write(line)
                 writeLines.append(line)
             while line:
@@ -137,7 +136,8 @@ class MyApp(tk.Frame):
         iwvName = os.path.basename(self.selected_file_path)
         if (iwvName in self.valueList) == False:
             self.valueList.append(iwvName)
-            self.UpdateComboBoxValues
+            self.UpdateComboBoxValues()
+            self.UpdateIWVBoxValues()
         else:
             print("既に存在しています")
 
@@ -177,9 +177,9 @@ class MyApp(tk.Frame):
 
         self.elementNum = self.elementEndColumn - self.elementStartColumn + 1
 
-        print(self.elementStartColumn)
-        print(self.elementEndColumn)
-        print(self.elementParamList)
+        # print(self.elementStartColumn)
+        # print(self.elementEndColumn)
+        # print(self.elementParamList)
         self.ShowElementUI()
         self.ShowIWVBox()
         self.UpdateComboBoxValues()
@@ -202,7 +202,7 @@ class MyApp(tk.Frame):
     #エレメントのボタンを押された時の処理、選択状態/非選択状態を切り替える。
     def OnClickElementButton(self, elementIndex):
         self.elementButtonClicked[elementIndex - 1] = not self.elementButtonClicked[elementIndex - 1] #bool反転
-        print(self.elementButtonClicked[elementIndex - 1])
+        # print(self.elementButtonClicked[elementIndex - 1])
         if self.elementButtonClicked[elementIndex - 1] == True:
             self.elementButton[elementIndex - 1]["bg"] = "#008080"
         else:
@@ -237,8 +237,12 @@ class MyApp(tk.Frame):
             # self.elementComboBoxes[counter].bind('<<ComboboxSelected>>', lambda e, c=counter: print(self.elementComboBoxes[c].get()))
             counter += 1
 
+    def UpdateIWVBoxValues(self):
+        for i in range(self.elementNum):
+            self.elementComboBoxes[i]["values"] = self.valueList
+
     #アプリ終了
     def QuitApp(self):
-        print("quit this App")
+        # print("quit this App")
         self.master.destroy()
     
