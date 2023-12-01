@@ -29,7 +29,7 @@ class MyApp(tk.Frame):
         self.scrollbarY = tk.Scrollbar(self.canvas, orient=tk.VERTICAL, command=self.canvas.yview)
         self.scrollbarX = tk.Scrollbar(self.canvas, orient=tk.HORIZONTAL, command=self.canvas.xview)
         # スクロールの設定
-        self.canvas.configure(scrollregion=(0, 0, 1920, 3000))
+        self.canvas.configure(scrollregion=(0, 0, 1920, 6000))
         self.canvas.configure(yscrollcommand=self.scrollbarX.set)
         self.canvas.configure(yscrollcommand=self.scrollbarY.set)
 
@@ -39,7 +39,7 @@ class MyApp(tk.Frame):
         self.canvas.pack(expand=True, fill=tk.BOTH)
 
         # Canvas上の座標(0, 0)に対してFrameの左上（nw=north-west）をあてがうように、Frameを埋め込む
-        self.canvas.create_window((0, 0), window=self.frame, anchor="nw", width=1920, height=3000)
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw", width=1920, height=6000)
 
         #cotファイル選択ボタン
         self.SelectCot = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
@@ -76,6 +76,21 @@ class MyApp(tk.Frame):
         self.DeselectAllButton["text"] = "DESELECT ALL" #ボタンのテキスト
         self.DeselectAllButton["command"] = self.DeselectAll
         self.DeselectAllButton.grid(row=0,column=5)
+
+        #Delayのラベル
+        self.DelayLabel = tk.Label(self.frame,text="追加する遅延時間",width=12,height=3)
+        self.DelayLabel.grid(row=0,column=6,padx=10)
+
+        #Delay入力テキストボックス
+        self.DelayEntry = tk.Entry(self.frame,width=15)
+        self.DelayEntry.grid(row=0,column=7)
+
+        #AddDelayAll
+        self.AddDelayAllButton = tk.Button(self.frame,bg='#ff4500',fg='#ffffff',width=12,height=3)
+        self.AddDelayAllButton["text"] = "ADD DELAY ALL" #ボタンのテキスト
+        self.AddDelayAllButton["command"] = self.OnClickAddDelayAllButton
+        self.AddDelayAllButton.grid(row=0,column=8,padx=15)
+
 
     #一括変更用のコンボボックスの選択肢を更新する
     def UpdateComboBoxValues(self):
@@ -220,6 +235,42 @@ class MyApp(tk.Frame):
             self.elementButtonClicked[i] = False
             self.elementButton[i]["bg"] = "#696969"
 
+    def OnClickAddDelayAllButton(self):
+        changeList = []
+        for i in range(self.elementNum):
+            if self.elementButtonClicked[i] == True:
+                changeList.append(i + 1)
+        self.AddDelayAll(changeList)
+
+    #すべてのエレメントの遅延時間を指定秒数足し合わせる
+    #指定された探触子の波形ファイルを指定されたものに変更する。elementIndexesには変更したい探触子番号が入ったリストを渡す。
+    def AddDelayAll(self, elementIndexes):
+        writeLines = []
+        #入力された文字がFloatに変換可能でない場合は処理を行わない
+        if self.isFloat(self.DelayEntry.get()) == False:
+            return
+        additiveDelay = float(self.DelayEntry.get())
+        with open(self.selectedCotFilePath, encoding="utf-8") as loadedFile:
+            for i in range(self.elementStartColumn - 1):
+                #element部分の行になるまで読み込む
+                line = loadedFile.readline()
+                writeLines.append(line)
+            #素子分ループ回して該当の素子の遅延時間を変える
+            for i in range(self.elementNum):
+                line = loadedFile.readline()
+                if ((i + 1) in elementIndexes) == True:
+                    parameters = line[:-1].split(",")
+                    # line = line.replace(parameters[6], '{:E}'.format(float(parameters[6]) + additiveDelay))
+                    line = line.replace(parameters[6], np.format_float_scientific(float(parameters[6]) + additiveDelay, precision=7,exp_digits=3, min_digits=6))
+                writeLines.append(line)
+            while line:
+                line = loadedFile.readline()
+                writeLines.append(line)
+        with open(self.selectedCotFilePath, "w") as writer:
+            for line in writeLines:
+                print(line)
+                writer.write(line)
+
     #Elementごとの波形ファイル設定用コンボボックスを表示
     def ShowIWVBox(self):
         self.elementComboBoxes = []
@@ -245,4 +296,14 @@ class MyApp(tk.Frame):
     def QuitApp(self):
         # print("quit this App")
         self.master.destroy()
+
+    #テキストがFloatに変換可能かどうか判定する
+    def isFloat(self, text):
+        try:
+            float(text)
+        except ValueError:
+            return False
+        else:
+            return True
+
     
