@@ -235,6 +235,7 @@ class MyApp(tk.Frame):
             self.elementButtonClicked[i] = False
             self.elementButton[i]["bg"] = "#696969"
 
+    #AddDelayAllButtonが押されたときのオンクリック処理、　現在選択されている素子のリストを渡して遅延時間を指定秒数足し合わせる。
     def OnClickAddDelayAllButton(self):
         changeList = []
         for i in range(self.elementNum):
@@ -242,8 +243,7 @@ class MyApp(tk.Frame):
                 changeList.append(i + 1)
         self.AddDelayAll(changeList)
 
-    #すべてのエレメントの遅延時間を指定秒数足し合わせる
-    #指定された探触子の波形ファイルを指定されたものに変更する。elementIndexesには変更したい探触子番号が入ったリストを渡す。
+    #指定された全ての素子の遅延時間を指定秒数足し合わせる。elementIndexesには変更したい素子番号が入ったリストを渡す。
     def AddDelayAll(self, elementIndexes):
         writeLines = []
         #入力された文字がFloatに変換可能でない場合は処理を行わない
