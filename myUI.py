@@ -24,12 +24,13 @@ class MyApp(tk.Frame):
     def InitWedgets(self):
         self.canvas = tk.Canvas(self.master)
         self.frame = tk.Frame(self.canvas)
+        self.windowHeight = 12000
 
         # Canvasを親とした縦方向のScrollbar
         self.scrollbarY = tk.Scrollbar(self.canvas, orient=tk.VERTICAL, command=self.canvas.yview)
         self.scrollbarX = tk.Scrollbar(self.canvas, orient=tk.HORIZONTAL, command=self.canvas.xview)
         # スクロールの設定
-        self.canvas.configure(scrollregion=(0, 0, 1920, 6000))
+        self.canvas.configure(scrollregion=(0, 0, 1920, self.windowHeight))
         self.canvas.configure(yscrollcommand=self.scrollbarX.set)
         self.canvas.configure(yscrollcommand=self.scrollbarY.set)
 
@@ -39,7 +40,7 @@ class MyApp(tk.Frame):
         self.canvas.pack(expand=True, fill=tk.BOTH)
 
         # Canvas上の座標(0, 0)に対してFrameの左上（nw=north-west）をあてがうように、Frameを埋め込む
-        self.canvas.create_window((0, 0), window=self.frame, anchor="nw", width=1920, height=6000)
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw", width=1920, height=self.windowHeight)
 
         #cotファイル選択ボタン
         self.SelectCot = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
