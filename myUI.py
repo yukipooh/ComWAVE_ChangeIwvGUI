@@ -46,7 +46,7 @@ class MyApp(tk.Frame):
         self.SelectCot = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
         self.SelectCot["text"] = "SELECT COT FILE" #ボタンのテキスト
         self.SelectCot["command"] = self.LoadCotFile
-        self.SelectCot.grid(row=0,column=0)
+        self.SelectCot.grid(row=0,column=0, padx=(0, 5))
 
         #iwvファイル選択ボタン
         self.AddIwv = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
@@ -56,7 +56,7 @@ class MyApp(tk.Frame):
 
         #波形ファイル一括変更用の波形選択用リストボックス
         self.comboBox = ttk.Combobox(self.frame, width=15, height=5, values=["test1","test2"])
-        self.comboBox.grid(row=0, column=2)
+        self.comboBox.grid(row=0, column=2, padx=(5, 5))
         newList = ["a","b","c"]
         self.comboBox["values"] = newList
 
@@ -64,13 +64,13 @@ class MyApp(tk.Frame):
         self.ChangeAllIwvButton = tk.Button(self.frame,bg='#ff4500',fg='#ffffff',width=12,height=3)
         self.ChangeAllIwvButton["text"] = "CHANGE ALL" #ボタンのテキスト
         self.ChangeAllIwvButton["command"] = self.OnClickChangeAllIwvButton
-        self.ChangeAllIwvButton.grid(row=0,column=3,padx=10)
+        self.ChangeAllIwvButton.grid(row=0,column=3,padx=(0, 40))
 
         #selectAllボタン
         self.SelectAllButton = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
         self.SelectAllButton["text"] = "SELECT ALL" #ボタンのテキスト
         self.SelectAllButton["command"] = self.SelectAll
-        self.SelectAllButton.grid(row=0,column=4)
+        self.SelectAllButton.grid(row=0,column=4, padx=(0, 5))
 
         #DeselectAllボタン
         self.DeselectAllButton = tk.Button(self.frame,bg='#000000',fg='#ffffff',width=12,height=3)
@@ -78,19 +78,33 @@ class MyApp(tk.Frame):
         self.DeselectAllButton["command"] = self.DeselectAll
         self.DeselectAllButton.grid(row=0,column=5)
 
-        #Delayのラベル
-        self.DelayLabel = tk.Label(self.frame,text="追加する遅延時間",width=12,height=3)
-        self.DelayLabel.grid(row=0,column=6,padx=10)
+        #加算するDelayのラベル
+        self.AddDelayLabel = tk.Label(self.frame,text="加算する遅延時間",width=12,height=3)
+        self.AddDelayLabel.grid(row=0,column=6,padx=(30, 5)) #pad 左20 右0
 
         #Delay入力テキストボックス
-        self.DelayEntry = tk.Entry(self.frame,width=15)
-        self.DelayEntry.grid(row=0,column=7)
+        self.AddDelayEntry = tk.Entry(self.frame,width=15)
+        self.AddDelayEntry.grid(row=0,column=7)
 
-        #AddDelayAll
+        #AddDelayAllボタン
         self.AddDelayAllButton = tk.Button(self.frame,bg='#ff4500',fg='#ffffff',width=12,height=3)
         self.AddDelayAllButton["text"] = "ADD DELAY ALL" #ボタンのテキスト
         self.AddDelayAllButton["command"] = self.OnClickAddDelayAllButton
-        self.AddDelayAllButton.grid(row=0,column=8,padx=15)
+        self.AddDelayAllButton.grid(row=0,column=8,padx=5)
+        
+        #設定するDelayのラベル
+        self.SetDelayLabel = tk.Label(self.frame,text="セットする遅延時間",width=12,height=3)
+        self.SetDelayLabel.grid(row=0,column=9,padx=(30, 5))
+
+        #設定するDelay入力テキストボックス
+        self.SetDelayEntry = tk.Entry(self.frame,width=15)
+        self.SetDelayEntry.grid(row=0,column=10)
+
+        #SetDelayAllボタン
+        self.SetDelayAllButton = tk.Button(self.frame,bg='#ff4500',fg='#ffffff',width=12,height=3)
+        self.SetDelayAllButton["text"] = "SET DELAY ALL" #ボタンのテキスト
+        self.SetDelayAllButton["command"] = self.OnClickSetDelayAllButton
+        self.SetDelayAllButton.grid(row=0,column=11,padx=5)
 
 
     #一括変更用のコンボボックスの選択肢を更新する
@@ -248,9 +262,9 @@ class MyApp(tk.Frame):
     def AddDelayAll(self, elementIndexes):
         writeLines = []
         #入力された文字がFloatに変換可能でない場合は処理を行わない
-        if self.isFloat(self.DelayEntry.get()) == False:
+        if self.isFloat(self.AddDelayEntry.get()) == False:
             return
-        additiveDelay = float(self.DelayEntry.get())
+        additiveDelay = float(self.AddDelayEntry.get())
         with open(self.selectedCotFilePath, encoding="utf-8") as loadedFile:
             for i in range(self.elementStartColumn - 1):
                 #element部分の行になるまで読み込む
@@ -263,6 +277,43 @@ class MyApp(tk.Frame):
                     parameters = line[:-1].split(",")
                     # line = line.replace(parameters[6], '{:E}'.format(float(parameters[6]) + additiveDelay))
                     line = line.replace(parameters[6], np.format_float_scientific(float(parameters[6]) + additiveDelay, precision=7,exp_digits=3, min_digits=6))
+                writeLines.append(line)
+            while line:
+                line = loadedFile.readline()
+                writeLines.append(line)
+        with open(self.selectedCotFilePath, "w") as writer:
+            for line in writeLines:
+                print(line)
+                writer.write(line)
+                
+    #SetDelayAllButtonが押されたときのオンクリック処理、　現在選択されている素子のリストを渡して遅延時間を指定秒数に変更する。
+    def OnClickSetDelayAllButton(self):
+        changeList = []
+        for i in range(self.elementNum):
+            if self.elementButtonClicked[i] == True:
+                changeList.append(i + 1)
+        self.SetDelayAll(changeList)
+        
+    #指定された全ての素子の遅延時間を指定秒数足し合わせる。elementIndexesには変更したい素子番号が入ったリストを渡す。
+    def SetDelayAll(self, elementIndexes):
+        writeLines = []
+        #入力された文字がFloatに変換可能でない場合は処理を行わない
+        if self.isFloat(self.SetDelayEntry.get()) == False:
+            return
+        setDelay = float(self.SetDelayEntry.get())
+        with open(self.selectedCotFilePath, encoding="utf-8") as loadedFile:
+            for i in range(self.elementStartColumn - 1):
+                #element部分の行になるまで読み込む
+                line = loadedFile.readline()
+                writeLines.append(line)
+            #素子分ループ回して該当の素子の遅延時間を変える
+            for i in range(self.elementNum):
+                line = loadedFile.readline()
+                if ((i + 1) in elementIndexes) == True:
+                    parameters = line[:-1].split(",")
+                    # line = line.replace(parameters[6], '{:E}'.format(float(parameters[6]) + additiveDelay))
+                    # 遅延時間部分を指定した遅延時間(setDelay)で置き換え
+                    line = line.replace(parameters[6], np.format_float_scientific(setDelay, precision=7,exp_digits=3, min_digits=6))
                 writeLines.append(line)
             while line:
                 line = loadedFile.readline()
